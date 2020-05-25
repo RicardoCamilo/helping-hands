@@ -7,7 +7,7 @@
   (:import [java.io IOException]
            [java.util UUID]))
 
-(def ^:private providerdb
+(def providerdb
   (delay (p/create-provider-database "provider")))
 
 
@@ -117,8 +117,8 @@
    :enter
          (fn [context]
            (let [tx-data (:tx-data context)
-                 id (str (UUID/randomUUID))
-                 tx-data (if (:id tx-data) tx-data (assoc tx-data :id id))
+                 tx-data (if (:id tx-data) tx-data (assoc tx-data :id (str (UUID/randomUUID))))
+                 id (:id tx-data)
                  db (.upsert @providerdb tx-data)]
              (if (nil? @db)
                (throw (IOException.
@@ -163,7 +163,7 @@
    (fn [context]
      (let [tx-data (:tx-data context)
            db (.delete @providerdb (:id tx-data))]
-       (if (nil? @db)
+       (if (nil? db)
          (assoc context :response {:status 404 :body "No such provider"})
          (assoc context :response {:status 200 :body "Success"}))))
 

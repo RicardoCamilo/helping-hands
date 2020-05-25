@@ -14,14 +14,14 @@
   (delete [this id]
     "Deletes the specified provider entity"))
 
-(defn- get-entity-id
+(defn get-entity-id
   [conn id]
   (-> (d/q '[:find ?e
              :in $ ?id
              :where [?e :provider/id ?id]] (d/db conn) (str id))
       ffirst))
 
-(defn- get-entity
+(defn get-entity
   [conn id]
   (let [eid (get-entity-id conn id)]
     (->> (d/entity (d/db conn) eid) seq (into {}))))

@@ -22,7 +22,7 @@
                         :body (.getMessage ex-info)}))})
 
 (def routes #{["/providers/:id"
-               :get (conj common-interceptors `generic-interceptors/auth `core/validate-id `core/upsert-provider `gen-events)
+               :get (conj common-interceptors `generic-interceptors/auth `core/validate-id `core/get-provider `gen-events)
                :route-name :provider-get]
               ["/providers/:id"
                :put (conj common-interceptors `generic-interceptors/auth `core/validate-id `core/upsert-provider `gen-events)
