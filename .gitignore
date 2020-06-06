@@ -16,6 +16,7 @@ target/
 repl-port
 .nrepl-port
 .repl
+helping-hands.iml
 
 # Temp Files
 *.orig

@@ -2,15 +2,15 @@
   "Initializes Helping Hands Consumer Service"
   (:require [cheshire.core :as jp]
             [clojure.string :as s]
-            [helping-hands.consumer.persistence :as p]
+            [helping-hands.consumer.state :refer [consumerdb]]
             [io.pedestal.interceptor.chain :as chain])
   (:import [java.io IOException]
            [java.util UUID]))
 
 ;; delay the check for database and connection
-;; till the first request to access @consumerdb
-(def ^:private consumerdb
-  (delay (p/create-consumer-database "consumer")))
+;; till the first request to access consumerdb
+;(def ^:private consumerdb
+;  (delay (p/create-consumer-database "consumer")))
 
 ; Validation Interceptors
 
@@ -82,7 +82,7 @@
    :enter
    (fn [context]
      (let [tx-data (:tx-data context)
-           entity (.entity @consumerdb (:id tx-data) (:flds tx-data))]
+           entity (.entity consumerdb (:id tx-data) (:flds tx-data))]
        (if (empty? entity)
          (assoc context :response {:status 400 :body "No such consumer"})
          (assoc context :response {:status 200
@@ -101,7 +101,7 @@
    (fn [context]
      (let [tx-data (:tx-data context)
            id (:id tx-data)
-           db (.upsert @consumerdb id (:name tx-data)
+           db (.upsert consumerdb id (:name tx-data)
                        (:address tx-data) (:mobile tx-data)
                        (:email tx-data) (:geo tx-data))]
        (if (nil? @db)
@@ -110,7 +110,7 @@
          (assoc context
            :response {:status 200
                       :body (jp/generate-string
-                              (.entity @consumerdb id []))}))))
+                              (.entity consumerdb id []))}))))
    :error
    (fn [context ex-info]
      (assoc context
@@ -126,7 +126,7 @@
            ;; generate a random ID if it not specified
            id (UUID/randomUUID)
            tx-data (if (:id tx-data) tx-data (assoc tx-data :id id))
-           db (.upsert @consumerdb (:id tx-data) (:name tx-data)
+           db (.upsert consumerdb (:id tx-data) (:name tx-data)
                        (:address tx-data) (:mobile tx-data)
                        (:email tx-data) (:geo tx-data))]
        (if (nil? @db)
@@ -135,7 +135,7 @@
          (assoc context
            :response {:status 200
                       :body (jp/generate-string
-                              (.entity @consumerdb id []))}))))
+                              (.entity consumerdb id []))}))))
    :error
    (fn [context ex-info]
      (assoc context
@@ -148,7 +148,7 @@
    :enter
    (fn [context]
      (let [tx-data (:tx-data context)
-           db (.delete @consumerdb (:id tx-data))]
+           db (.delete consumerdb (:id tx-data))]
        (if (nil? @db)
          (assoc context :response {:status 404 :body "No such consumer"})
          (assoc context :response {:status 200 :body "Success"}))))

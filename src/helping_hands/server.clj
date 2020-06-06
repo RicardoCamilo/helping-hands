@@ -2,17 +2,25 @@
   (:gen-class) ; for -main method in uberjar
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
+            [helping-hands.consumer.config :as cfg]
+            [mount.core :as mount]
             [helping-hands.consumer.service :as consumer-service]
             [helping-hands.provider.service :as provider-service]))
 
 ;; This is an adapted service map, that can be started and stopped
 ;; From the REPL you can call server/start and server/stop on this service
-(defonce runnable-service (server/create-server provider-service/service))
+(defonce runnable-service (server/create-server consumer-service/service))
 
 (defn run-dev
   "The entry-point for 'lein run-dev'"
   [& args]
   (println "\nCreating your [DEV] server...")
+  (cfg/init-config {:cli-args args :quit-on-error true})
+  (mount/start)
+  ;; Add shutdown-hook
+  (.addShutdownHook
+    (Runtime/getRuntime)
+    (Thread. mount/stop))
   (-> consumer-service/service ;; start with production configuration
       (merge {:env :dev
               ;; do not block thread that starts web server
@@ -34,6 +42,12 @@
   "The entry-point for 'lein run'"
   [& args]
   (println "\nCreating your server...")
+  (cfg/init-config {:cli-args args :quit-on-error true})
+  (mount/start)
+  ;; Add shutdown-hook
+  (.addShutdownHook
+    (Runtime/getRuntime)
+    (Thread. mount/stop))
   (server/start runnable-service))
 
 ;; If you package the service up as a WAR,

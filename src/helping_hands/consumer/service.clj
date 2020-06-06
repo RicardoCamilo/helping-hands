@@ -1,8 +1,7 @@
 (ns helping-hands.consumer.service
   (:require [helping-hands.consumer.core :as core]
-           [io.pedestal.http :as http]
-           [io.pedestal.http.route :as route]
-           [io.pedestal.http.body-params :as body-params]
+            [io.pedestal.http :as http]
+            [io.pedestal.http.body-params :as body-params]
             [helping-hands.service :as generic-interceptors]))
 
 (def common-interceptors [(body-params/body-params) http/html-body])

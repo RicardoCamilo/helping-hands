@@ -1,6 +1,7 @@
 (ns helping-hands.consumer.persistence
   "Persistence Port and Adapter for Consumer Service"
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [helping-hands.consumer.config :as cfg]))
 
 (defprotocol ConsumerDB
   "Abstraction for consumer database"
@@ -12,7 +13,10 @@
     "Gets the specified consumer with all or requested fields")
 
   (delete [this id]
-    "Deletes the specified consumer entity"))
+    "Deletes the specified consumer entity")
+
+  (close [this]
+    "Closes the database"))
 
 (defn- get-entity-id
   [conn id]
@@ -47,12 +51,15 @@
 
   (delete [this id]
     (when-let [eid (get-entity-id conn id)]
-      (d/transact conn [[:db.fn/retractEntity eid]]))))
+      (d/transact conn [[:db.fn/retractEntity eid]])))
+
+  (close [this]
+    d/shutdown true))
 
 (defn create-consumer-database
   "Creates a consumer database and returns the connection"
-  [d]
-  (let [dburi (str "datomic:mem://" d)
+  []
+  (let [dburi (cfg/get-config [:datomic :uri])
         db (d/create-database dburi)
         conn (d/connect dburi)]
     ;; transact schema if database was created
